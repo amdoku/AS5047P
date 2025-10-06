@@ -276,9 +276,19 @@ T AS5047P::readReg(AS5047P_Types::ERROR_t *errorOut, bool verifyParity, bool che
 template<class T>
 bool AS5047P::writeReg(const T *regData, AS5047P_Types::ERROR_t *errorOut, bool checkForComError, bool verifyWittenReg) {
 
+    uint16_t address_parity = 0;
+    if (!AS5047P_Util::hasEvenNoOfBits(T::REG_ADDRESS)) {
+        address_parity = 0x8000;
+    }
+
+    uint16_t data_parity = 0;
+    if (!AS5047P_Util::hasEvenNoOfBits(regData->data.raw)) {
+        data_parity = 0x8000;
+    }
+
     // write register data
-    __spiInterface.write(T::REG_ADDRESS, regData->data.raw);
-    
+    __spiInterface.write(T::REG_ADDRESS ^ address_parity, regData->data.raw ^ data_parity);
+
     if (errorOut == nullptr) {
         return true;
     }
